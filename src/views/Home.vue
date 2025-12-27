@@ -2,10 +2,16 @@
     <div class="page">
         <h1>首页(前端1)</h1>
 
+        <!--list-->
+        <router-link :to="{path:'/list'}">列表</router-link>
+
+        <!--搜索栏-->
+        <input type="text" v-model="inputKeyword" @keyup.enter="handleSearch">
+        <button class="" @click="handleSearch">搜索</button>
         <!--轮播图-->
-        <template class="carousel" @mouseenter="stopPlay" @mouseleave="autoPlay">
+        <div class="carousel" @mouseenter="stopPlay" @mouseleave="autoPlay">
             <!--图片列表，通过transform动态平移切换-->
-            <div class="carousel-list" :style="{transform:'translateX(-${currentIndex * itemWidth}px)'}">
+            <div class="carousel-list" :style="{transform:`translateX(-${currentIndex * itemWidth}px)`}">
                 <div class="carousel-item" v-for="(item, index) in carouselList" :key="index" @click="turnTodetailById(index)">
                     <img :src="item.imgurl" alt="">
                 </div>
@@ -22,11 +28,9 @@
                 :class="{active: currentIndex === index}">
                 </span>
             </div>
-        </template>
+        </div>
 
-        <!--搜索栏-->
-        <input type="text" v-model="inputKeyword" @keyup.enter="handleSearch">
-        <button class="" @click="handleSearch">搜索</button>
+        
     </div>
 </template>
 
@@ -43,9 +47,9 @@
     const itemWidth = 800//后期根据美化更改
 
     const carouselList = ref([])
-    for (const item in allSpots){
-        imgurl = item.img
-        carouselList.value.join(imgurl)
+    for (const item of allSpots){
+        const imgurl = item.img
+        carouselList.value.push(imgurl)
     }
 
     const switchTo = (index) => {
@@ -82,6 +86,7 @@
     }
 
     onMounted(() => {
+        clearInterval(timer.value)
         autoPlay()
     })
 

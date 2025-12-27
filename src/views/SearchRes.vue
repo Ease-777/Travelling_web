@@ -1,5 +1,6 @@
 <template>
     <!--搜索结果-->
+    <router-link :to="{path:'/'}">返回首页</router-link>
     <div v-if="resList.length === 0" class="">
         未找到“{{currentKeyword}}”相关内容
     </div>
