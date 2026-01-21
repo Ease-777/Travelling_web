@@ -1,6 +1,6 @@
 <template>
   <div class="page">
-    <h1>景点详情(前端2)</h1>
+    <h1>景点详情</h1>
     <!-- 景点核心信息 -->
     <div class="spot-card" v-if="currentSpot">
       <!-- 景点名称 -->
@@ -43,7 +43,7 @@
           <button 
             @click="addComment" 
             class="comment-btn"
-            :disabled="!newComment.value.trim() || isCommenting.value"
+            :disabled="!newComment.value || !newComment.value.trim() || isCommenting.value"
           >
             提交评论
           </button>
@@ -85,7 +85,10 @@ const isLiked = ref(false) // 点赞状态标记
 // 4. 格式化价格（处理空值、免费场景）
 const formatPrice = (price) => {
   if (!price && price !== 0) return '暂无定价'
-  return price === 0 ? '免费' : `¥${Number(price).toFixed(2)}`
+  if (price === 0 || price === '免费') return '免费'
+  const priceNum = Number(price)
+  if (isNaN(priceNum)) return '免费'
+  return `¥${priceNum.toFixed(2)}`
 }
 
 // 5. 图片加载失败兜底
@@ -116,8 +119,24 @@ const restoreData = () => {
 
 // 7. 页面加载时匹配景点数据 + 恢复持久化数据
 onMounted(() => {
-  // 强类型匹配景点（避免id=1和id="1"不匹配）
-  currentSpot.value = allSpots.find(item => Number(item.id) === spotId.value)
+  // 简化逻辑，直接使用路由参数作为索引值
+  let index = 0
+  
+  // 尝试从query参数获取索引值
+  if (route.query.id) {
+    index = Number(route.query.id)
+  }
+  // 尝试从params参数获取索引值
+  else if (route.params.id) {
+    index = Number(route.params.id)
+  }
+  
+  // 确保索引值在有效范围内
+  if (index < 0) index = 0
+  if (index >= allSpots.length) index = allSpots.length - 1
+  
+  // 设置当前景点
+  currentSpot.value = allSpots[index]
   
   // 恢复本地存储数据
   if (currentSpot.value) {
