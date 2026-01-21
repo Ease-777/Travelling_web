@@ -28,6 +28,13 @@
         >
           👍 {{ isLiked.value ? '已点赞' : '点赞' }} {{ likeCount }}
         </button>
+        <button 
+          class="fav-btn" 
+          :class="{ active: isFav }" 
+          @click="toggleFavorite"
+        >
+          {{ isFav ? '❤️ 已收藏' : '🤍 收藏' }}
+        </button>
       </div>
 
       <!-- 评论区（带时间戳+列表优化） -->
@@ -81,6 +88,8 @@ const commentList = ref([])
 const isLiking = ref(false) // 点赞防抖锁
 const isCommenting = ref(false) // 评论防抖锁
 const isLiked = ref(false) // 点赞状态标记
+const isFav = ref(false)
+const LS_KEY_FAV = 'favorites'
 
 // 4. 格式化价格（处理空值、免费场景）
 const formatPrice = (price) => {
@@ -115,8 +124,50 @@ const restoreData = () => {
   if (savedComments) {
     commentList.value = JSON.parse(savedComments)
   }
+    checkFav()
+}
+const checkFav = () => {
+  const raw = localStorage.getItem(LS_KEY_FAV)
+  if (raw) {
+    try {
+      const list = JSON.parse(raw)
+      if (Array.isArray(list)) {
+        // 兼容处理：无论存的是对象还是ID，都提取ID
+        const ids = list.map(item => (typeof item === 'object' ? item.id : Number(item)))
+        // 检查当前景点ID是否在列表里
+        isFav.value = ids.includes(currentSpot.value.id)
+      }
+    } catch (e) {}
+  }
 }
 
+const toggleFavorite = () => {
+  let list = []
+  const raw = localStorage.getItem(LS_KEY_FAV)
+  if (raw) {
+    try { list = JSON.parse(raw) } catch (e) {}
+  }
+  
+  // 清洗数据为纯ID数组
+  let ids = []
+  if (Array.isArray(list)) {
+    ids = list.map(item => (typeof item === 'object' ? item.id : Number(item)))
+  }
+
+  const currentId = currentSpot.value.id
+
+  if (isFav.value) {
+    // 取消收藏
+    ids = ids.filter(id => id !== currentId)
+    isFav.value = false
+  } else {
+    // 添加收藏
+    ids.push(currentId)
+    isFav.value = true
+  }
+
+  localStorage.setItem(LS_KEY_FAV, JSON.stringify(ids))
+}
 // 7. 页面加载时匹配景点数据 + 恢复持久化数据
 onMounted(() => {
   // 简化逻辑，直接使用路由参数作为索引值
@@ -254,6 +305,9 @@ const addComment = async () => {
 
 .like-box {
   margin: 24px 0;
+  display: flex;
+  gap: 15px; 
+  align-items: center;
 }
 
 .like-btn {
@@ -275,6 +329,28 @@ const addComment = async () => {
 .like-btn:disabled {
   background: #cccccc;
   cursor: not-allowed;
+}
+
+.fav-btn {
+  background: white;
+  color: #666;
+  border: 1px solid #ddd;
+  padding: 12px 24px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+.fav-btn:hover {
+  background-color: #f9f9f9;
+  border-color: #bbb;
+}
+
+.fav-btn.active {
+  background-color: #fff0f0; 
+  color: #ff4d4f;          
+  border-color: #ff4d4f;
 }
 
 .comment-area {
