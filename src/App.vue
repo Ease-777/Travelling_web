@@ -67,4 +67,19 @@
   padding: var(--spacing-lg);
   min-height: calc(100vh - 60px);
 }
+/* 手机端适配 */
+@media (max-width: 600px) {
+  .navbar {
+    padding: 0 15px; 
+  }
+
+  .logo {
+    font-size: 16px;
+  }
+
+  .links a {
+    margin-left: 10px; 
+    font-size: 14px; 
+  }
+}
 </style>
