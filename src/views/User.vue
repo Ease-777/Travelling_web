@@ -4,7 +4,7 @@
 
     <div v-if="favorites.length === 0" class="empty">
       <p>你还没有收藏任何景点。</p>
-      <p>前往列表或详情页添加收藏，收藏会保存在浏览器的 LocalStorage 中（键名：`favorites`）。</p>
+      <button class="go-home-btn" @click="router.push('/')">去逛逛</button>
     </div>
 
     <ul v-else class="fav-list">
@@ -31,7 +31,6 @@ const LS_KEY = 'favorites'
 const router = useRouter()
 
 const turnTodetail = (id) => {
-  // 根据id值找到对应的索引值
   const index = allSpots.findIndex(item => item.id === id)
   if (index !== -1) {
     router.push({path:`/detail/${index}`, query:{id: index}})
@@ -47,7 +46,6 @@ function loadFromLocalStorage() {
 
   try {
     const parsed = JSON.parse(raw)
-    // parsed might be an array of ids ([1,2,3]) or array of objects
     if (Array.isArray(parsed)) {
       if (parsed.length === 0) {
         favorites.value = []
@@ -56,20 +54,16 @@ function loadFromLocalStorage() {
 
       const first = parsed[0]
       if (typeof first === 'number' || typeof first === 'string') {
-        // array of ids -> map to allSpots
         const ids = parsed.map(x => Number(x))
         favorites.value = allSpots.filter(s => ids.includes(s.id))
         return
       }
 
       if (typeof first === 'object') {
-        // array of objects -> assume they have id,name,img...
         favorites.value = parsed
         return
       }
     }
-
-    // fallback: treat as empty
     favorites.value = []
   } catch (e) {
     console.warn('无法解析 favorites（LocalStorage）:', e)
@@ -82,12 +76,10 @@ function saveIdsToLocalStorage(ids) {
 }
 
 function remove(id) {
-  // update favorites in-memory
   const idx = favorites.value.findIndex(i => i.id === id)
   if (idx === -1) return
   favorites.value.splice(idx, 1)
 
-  // attempt to keep LocalStorage in id-array form if possible
   const raw = localStorage.getItem(LS_KEY)
   try {
     const parsed = JSON.parse(raw)
@@ -100,7 +92,6 @@ function remove(id) {
     // ignore
   }
 
-  // otherwise save as array of objects
   saveIdsToLocalStorage(favorites.value.map(i => i.id))
 }
 
@@ -140,6 +131,25 @@ onMounted(() => {
   margin-bottom: var(--spacing-md);
   line-height: 1.6;
 }
+
+/* --- ！！！这里是你漏掉的部分，我补上了！！！ --- */
+.go-home-btn {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 8px 24px;
+  background-color: var(--accent-color, #42b983); /* 优先用主题色，没有就用绿色 */
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: opacity 0.3s;
+}
+
+.go-home-btn:hover {
+  opacity: 0.9;
+}
+/* ------------------------------------------- */
 
 /* 收藏列表 */
 .fav-list {
@@ -197,9 +207,7 @@ onMounted(() => {
   color: var(--text-secondary);
   font-size: var(--font-size-sm);
   line-height: 1.6;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
